@@ -1,3 +1,8 @@
+import Prelude
+import Data.Char
+import Data.List.Split
+import Data.List
+
 deleteAtN :: Int -> [a] -> [a]
 deleteAtN _ [] = []
 deleteAtN i (a:as)
@@ -16,7 +21,7 @@ removeDuplicates = rdHelper [] where
         | otherwise = rdHelper (seen ++ [x]) xs
 
 perturbations :: String -> [String]
-perturbations word =  removeDuplicates $ concat [deletions, insertions, transpositions] where
+perturbations word = removeDuplicates $ concat [deletions, insertions, transpositions, replacements] where
     deletions = [deleteAtN i word | i <- [0..length word-1]]
     insertions = [addAtN i letter word | i <- [0..length word-1], letter <- letters] where
         letters = "abcdefghijklmnopqrstuvwxyz"
@@ -33,6 +38,21 @@ perturbations word =  removeDuplicates $ concat [deletions, insertions, transpos
         replacement i letter word = addAtN i letter (deleteAtN i word)
         letters = "abcdefghijklmnopqrstuvwxyz"
 
+perturbationsOfList :: [String] -> [String]
+perturbationsOfList (x:xs) = perturbations x ++ perturbationsOfList xs
+
+-- Extracting text from file into string
+filterData :: String -> String
+filterData string = filter (\x -> x `elem` letters) string where
+    letters = "abcdefghijklmnopqrstuvwxyz "
+
 main:: IO()
 main = do
-    print(perturbations "xyzww")
+    words <- readFile "text.txt"
+    let filteredData = filterData $ map toLower words
+    let dictionary = splitOn " " filteredData
+    putStrLn "Enter a word"
+    word <- getLine
+    let matches = perturbationsOfList $ perturbations word
+    let validMatches = intersect matches dictionary
+    putStrLn(head validMatches)
