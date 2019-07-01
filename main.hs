@@ -3,6 +3,7 @@ import Data.Char
 import Data.List.Split
 import Data.List
 
+
 deleteAtN :: Int -> [a] -> [a]
 deleteAtN _ [] = []
 deleteAtN i (a:as)
@@ -19,11 +20,11 @@ removeDuplicates = rdHelper [] where
     rdHelper seen (x:xs)
         | x `elem` seen = rdHelper seen xs
         | otherwise = rdHelper (seen ++ [x]) xs
-
+    
 perturbations :: String -> [String]
-perturbations word = removeDuplicates $ concat [deletions, insertions, transpositions, replacements] where
+perturbations word = removeDuplicates $ concat [transpositions, replacements, insertions, deletions] where
     deletions = [deleteAtN i word | i <- [0..length word-1]]
-    insertions = [addAtN i letter word | i <- [0..length word-1], letter <- letters] where
+    insertions = [addAtN i letter word | i <- [0..length word], letter <- letters] where
         letters = "abcdefghijklmnopqrstuvwxyz"
     transpositions = [transpose i j word |
          i <- [0..length word-1],
@@ -39,7 +40,14 @@ perturbations word = removeDuplicates $ concat [deletions, insertions, transposi
         letters = "abcdefghijklmnopqrstuvwxyz"
 
 perturbationsOfList :: [String] -> [String]
-perturbationsOfList (x:xs) = perturbations x ++ perturbationsOfList xs
+perturbationsOfList = perturbationsOfListAux where 
+    perturbationsOfListAux [] = []
+    perturbationsOfListAux (x:xs) = perturbations x ++ perturbationsOfList xs
+
+getMatchesInOrderOfPriority :: String -> [String] -> [String]
+getMatchesInOrderOfPriority word dictionary=  firstOrderPerturbations ++ secondOrderPerurbations where
+    firstOrderPerturbations = intersect dictionary (perturbations word)
+    secondOrderPerurbations = intersect dictionary $ (perturbationsOfList $ perturbations word) \\ (perturbations word)
 
 -- Extracting text from file into string
 filterData :: String -> String
@@ -48,11 +56,9 @@ filterData string = filter (\x -> x `elem` letters) string where
 
 main:: IO()
 main = do
-    words <- readFile "text.txt"
-    let filteredData = filterData $ map toLower words
-    let dictionary = splitOn " " filteredData
+    words <- readFile "google-10000-english-no-swears.txt"
+    let dictionary = splitOn "\n" words
     putStrLn "Enter a word"
     word <- getLine
-    let matches = perturbationsOfList $ perturbations word
-    let validMatches = intersect matches dictionary
-    putStrLn(head validMatches)
+    let matches = getMatchesInOrderOfPriority word dictionary
+    print(take 10 $ matches)
