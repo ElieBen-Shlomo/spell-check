@@ -5,4 +5,4 @@ This little script is modelled on Peter Norvig's expose https://norvig.com/spell
 
 To run simply clone and hit `runhaskell main.hs` in your root directory
 
-![Example Pic](p3745635.html)
+![Example Pic](pic.png)
